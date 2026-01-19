@@ -1,0 +1,26 @@
+# ### Exercise 4
+
+# 1. Prepariamo la serie dei MASCHI ('M')
+# Filtriamo, ordiniamo per età e resettiamo l'indice (fondamentale per oddity)
+males_age = (df[df['sex'] == 'M']['age_years']
+             .sort_values()
+             .reset_index(drop=True))
+
+# 2. Prepariamo la serie delle FEMMINE ('F')
+females_age = (df[df['sex'] == 'F']['age_years']
+               .sort_values()
+               .reset_index(drop=True))
+
+# 3. Applichiamo la funzione oddity definita nell'Ex 3
+males_oddity = oddity(males_age)
+females_oddity = oddity(females_age)
+
+# Visualizzazione dei primi risultati
+print("Risultati Maschi (primi 5):")
+print(males_oddity.head())
+print("\nRisultati Femmine (primi 5):")
+print(females_oddity.head())
+
+Questo è il passaggio più importante per ottenere il punteggio massimo:
+
+Quando ordini i dati con sort_values(), Pandas mantiene gli indici originali (es. la riga 50 potrebbe finire al primo posto).
