@@ -1,0 +1,32 @@
+# ### Exercise 6
+
+plt.figure(figsize=(10, 6))
+
+# Definiamo le categorie uniche per sesso e ambiente
+sexes = df['sex'].unique()
+environments = df['environment'].unique()
+
+# Cicliamo su ogni combinazione
+for s in sexes:
+    for e in environments:
+        # Filtriamo il dataframe per la combinazione corrente
+        subset = df[(df['sex'] == s) & (df['environment'] == e)]
+        
+        # Disegniamo l'istogramma se ci sono dati disponibili
+        if not subset.empty:
+            plt.hist(subset['age_years'], 
+                     bins=10, 
+                     alpha=0.5, 
+                     label=f'{s} - {e}')
+
+# Aggiungiamo i dettagli del grafico
+plt.title('Distribution of Age by Sex and Environment', fontsize=14)
+plt.xlabel('Age (years)')
+plt.ylabel('Frequency')
+
+# La legenda è fondamentale per distinguere i 4 gruppi
+plt.legend(title='Sex - Environment')
+
+plt.grid(axis='y', linestyle='--', alpha=0.3)
+plt.tight_layout()
+plt.show()
