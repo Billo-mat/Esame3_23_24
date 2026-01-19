@@ -1,0 +1,163 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+
+
+# Caricamento del file con i nomi corretti delle colonne presenti nel CSV
+df = pd.read_csv('brown_bear_blood.csv', parse_dates=['birth', 'sampling_date'])
+
+# Verifica dei tipi di dato
+print(df.info())
+
+df['sampling_place'] = df['Sample_ID'].str.split().str[-1]
+
+print(df.head())
+
+
+
+
+def oddity(s: pd.Series) -> pd.Series:
+    """
+    Moltiplica gli elementi di una Series in base al loro indice intero:
+    - Indice pari: valore * 100
+    - Indice dispari: valore * 1000
+
+    >>> s = pd.Series([10.0, 9.5, 8.0])
+    >>> oddity(s).tolist()
+    [1000.0, 9500.0, 800.0]
+    """
+    # Creiamo un array di moltiplicatori: 100 se l'indice è pari, 1000 se dispari
+    # Usiamo s.index per accedere agli indici interi
+    multipliers = np.where(s.index % 2 == 0, 100, 1000)
+    
+    # Restituiamo la Series moltiplicata
+    return s * multipliers
+
+# Per eseguire il test contenuto nella docstring:
+if __name__ == "__main__":
+    import doctest
+    doctest.testmod()
+
+# ### Exercise 4
+
+# 1. Prepariamo la serie dei MASCHI ('M')
+# Filtriamo, ordiniamo per età e resettiamo l'indice (fondamentale per oddity)
+males_age = (df[df['sex'] == 'M']['age_years']
+             .sort_values()
+             .reset_index(drop=True))
+
+# 2. Prepariamo la serie delle FEMMINE ('F')
+females_age = (df[df['sex'] == 'F']['age_years']
+               .sort_values()
+               .reset_index(drop=True))
+
+# 3. Applichiamo la funzione oddity definita nell'Ex 3
+males_oddity = oddity(males_age)
+females_oddity = oddity(females_age)
+
+# Visualizzazione dei primi risultati
+print("Risultati Maschi (primi 5):")
+print(males_oddity.head())
+print("\nRisultati Femmine (primi 5):")
+print(females_oddity.head())
+
+# ### Exercise 5
+
+# Calcoliamo il numero di campioni per ogni luogo unico
+site_counts = df['sampling_place'].value_counts()
+
+# Stampiamo il risultato
+print("Numero di campioni per ogni sito di campionamento:")
+print(site_counts)
+
+
+# ### Exercise 6
+
+plt.figure(figsize=(10, 6))
+
+# Definiamo le categorie uniche per sesso e ambiente
+sexes = df['sex'].unique()
+environments = df['environment'].unique()
+
+# Cicliamo su ogni combinazione
+for s in sexes:
+    for e in environments:
+        # Filtriamo il dataframe per la combinazione corrente
+        subset = df[(df['sex'] == s) & (df['environment'] == e)]
+        
+        # Disegniamo l'istogramma se ci sono dati disponibili
+        if not subset.empty:
+            plt.hist(subset['age_years'], 
+                     bins=10, 
+                     alpha=0.5, 
+                     label=f'{s} - {e}')
+
+# Aggiungiamo i dettagli del grafico
+plt.title('Distribution of Age by Sex and Environment', fontsize=14)
+plt.xlabel('Age (years)')
+plt.ylabel('Frequency')
+
+# La legenda è fondamentale per distinguere i 4 gruppi
+plt.legend(title='Sex - Environment')
+
+plt.grid(axis='y', linestyle='--', alpha=0.3)
+plt.tight_layout()
+plt.show()
+
+
+# ### Exercise 7
+
+# Creiamo una figura con 3 righe (nrows=3) e 1 colonna (ncols=1)
+fig, axes = plt.subplots(nrows=3, ncols=1, figsize=(8, 8))
+
+# Lista dei tre livelli di metilazione da plottare
+meth_cols = ['SLC12A5', 'VGF', 'SCGN']
+colors = ['tab:blue', 'tab:green', 'tab:orange']
+
+# Cicliamo sugli assi e sulle colonne per disegnare i grafici
+for i, col in enumerate(meth_cols):
+    axes[i].scatter(df['age_years'], df[col], alpha=0.6, color=colors[i])
+    
+    # Personalizzazione di ogni singolo subplot
+    axes[i].set_title(f'Scatter plot: Age vs {col}', fontsize=12, fontweight='bold')
+    axes[i].set_xlabel('Age (years)')
+    axes[i].set_ylabel(f'Methylation {col}')
+    axes[i].grid(True, linestyle='--', alpha=0.5)
+
+# Evita che i titoli e le etichette si sovrappongano
+plt.tight_layout()
+plt.show()
+
+import pymc as pm
+import arviz as az
+import matplotlib.pyplot as plt
+
+# ### Exercise 8
+
+# Definiamo il modello probabilistico
+with pm.Model() as bear_model:
+    # 1. Priors (Distribuzioni a priori come da traccia)
+    # alpha: intercetta, beta: coefficiente per SCGN, gamma: deviazione standard
+    alpha = pm.Normal('alpha', mu=0, sigma=1)
+    beta = pm.Normal('beta', mu=1, sigma=1)
+    gamma = pm.Exponential('gamma', lam=1)
+    
+    # 2. Formula della media (Linear Predictor)
+    # mu = alpha + beta * SCGN
+    mu = alpha + beta * df['SCGN'].values
+    
+    # 3. Likelihood (Distribuzione dei dati osservati)
+    # L'età osservata segue una normale con media mu e deviazione standard gamma
+    age_obs = pm.Normal('age_obs', mu=mu, sigma=gamma, observed=df['age_years'].values)
+    
+    # 4. Campionamento (MCMC)
+    # Generiamo i campioni dalla distribuzione a posteriori
+    trace = pm.sample(1000, tune=1000, chains=2, random_seed=42)
+
+# 5. Visualizzazione dei risultati
+# plot_posterior mostra la distribuzione di probabilità stimata per ogni parametro
+az.plot_posterior(trace, var_names=['alpha', 'beta', 'gamma'])
+plt.show()
+
+# Stampa del riassunto statistico (opzionale ma utile)
+print(az.summary(trace))
