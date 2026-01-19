@@ -1,0 +1,22 @@
+# ### Exercise 7
+
+# Creiamo una figura con 3 righe (nrows=3) e 1 colonna (ncols=1)
+fig, axes = plt.subplots(nrows=3, ncols=1, figsize=(8, 15))
+
+# Lista dei tre livelli di metilazione da plottare
+meth_cols = ['SLC12A5', 'VGF', 'SCGN']
+colors = ['tab:blue', 'tab:green', 'tab:orange']
+
+# Cicliamo sugli assi e sulle colonne per disegnare i grafici
+for i, col in enumerate(meth_cols):
+    axes[i].scatter(df['age_years'], df[col], alpha=0.6, color=colors[i])
+    
+    # Personalizzazione di ogni singolo subplot
+    axes[i].set_title(f'Scatter plot: Age vs {col}', fontsize=12, fontweight='bold')
+    axes[i].set_xlabel('Age (years)')
+    axes[i].set_ylabel(f'Methylation {col}')
+    axes[i].grid(True, linestyle='--', alpha=0.5)
+
+# Evita che i titoli e le etichette si sovrappongano
+plt.tight_layout()
+plt.show()
