@@ -1,0 +1,7 @@
+import pandas as pd
+
+# Caricamento del file con i nomi corretti delle colonne presenti nel CSV
+df = pd.read_csv('brown_bear_blood.csv', parse_dates=['birth', 'sampling_date'])
+
+# Verifica dei tipi di dato
+print(df.info())
