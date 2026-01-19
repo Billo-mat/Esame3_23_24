@@ -1,0 +1,6 @@
+# Calcoliamo il numero di campioni per ogni luogo unico
+site_counts = df['sampling_place'].value_counts()
+
+# Stampiamo il risultato
+print("Numero di campioni per ogni sito di campionamento:")
+print(site_counts)
