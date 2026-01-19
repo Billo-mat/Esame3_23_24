@@ -1,0 +1,1 @@
+df['sampling_place'] = df['Sample_ID'].str.split().str[-1] #divide la stringa per gli spazi e prende l'ultimo elemento
