@@ -1,0 +1,33 @@
+import pymc as pm
+import arviz as az
+import matplotlib.pyplot as plt
+
+# ### Exercise 8
+
+# Definiamo il modello probabilistico
+with pm.Model() as bear_model:
+    # 1. Priors (Distribuzioni a priori come da traccia)
+    # alpha: intercetta, beta: coefficiente per SCGN, gamma: deviazione standard
+    alpha = pm.Normal('alpha', mu=0, sigma=1)
+    beta = pm.Normal('beta', mu=1, sigma=1)
+    gamma = pm.Exponential('gamma', lam=1)
+    
+    # 2. Formula della media (Linear Predictor)
+    # mu = alpha + beta * SCGN
+    mu = alpha + beta * df['SCGN'].values
+    
+    # 3. Likelihood (Distribuzione dei dati osservati)
+    # L'età osservata segue una normale con media mu e deviazione standard gamma
+    age_obs = pm.Normal('age_obs', mu=mu, sigma=gamma, observed=df['age_years'].values)
+    
+    # 4. Campionamento (MCMC)
+    # Generiamo i campioni dalla distribuzione a posteriori
+    trace = pm.sample(1000, tune=1000, chains=2, random_seed=42)
+
+# 5. Visualizzazione dei risultati
+# plot_posterior mostra la distribuzione di probabilità stimata per ogni parametro
+az.plot_posterior(trace, var_names=['alpha', 'beta', 'gamma'])
+plt.show()
+
+# Stampa del riassunto statistico (opzionale ma utile)
+print(az.summary(trace))
