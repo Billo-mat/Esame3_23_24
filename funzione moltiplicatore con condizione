@@ -1,0 +1,24 @@
+import pandas as pd
+import numpy as np
+
+def oddity(s: pd.Series) -> pd.Series:
+    """
+    Moltiplica gli elementi di una Series in base al loro indice intero:
+    - Indice pari: valore * 100
+    - Indice dispari: valore * 1000
+
+    >>> s = pd.Series([10.0, 9.5, 8.0])
+    >>> oddity(s).tolist()
+    [1000.0, 9500.0, 800.0]
+    """
+    # Creiamo un array di moltiplicatori: 100 se l'indice è pari, 1000 se dispari
+    # Usiamo s.index per accedere agli indici interi
+    multipliers = np.where(s.index % 2 == 0, 100, 1000)
+    
+    # Restituiamo la Series moltiplicata
+    return s * multipliers
+
+# Per eseguire il test contenuto nella docstring:
+if __name__ == "__main__":
+    import doctest
+    doctest.testmod()
